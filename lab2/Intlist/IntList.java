@@ -81,8 +81,15 @@ public class IntList {
      */
 
     public static IntList dcatenate(IntList A, IntList B) {
-        //TODO:  fill in method
-        return null;
+        if(A == null){
+            return B;
+        }
+        IntList p = A;
+        while (p.rest != null) {
+            p = p.rest;
+        }
+        p.rest = B;
+        return A;
     }
 
     /**
@@ -90,13 +97,58 @@ public class IntList {
      * * elements of B.  May NOT modify items of A.  Use 'new'.
      */
     public static IntList catenate(IntList A, IntList B) {
-        //TODO:  fill in method
-        return null;
+        if(A == null){
+            return B;
+        }
+        IntList p = new IntList(A.first, null);
+        IntList s = p;
+        A = A.rest;
+        while(A != null){
+            p.rest = new IntList(A.first, null);
+            p = p.rest;
+            A = A.rest;
+        }
+        p.rest = B;
+        return s;
     }
 
+    public static IntList catenateRecur(IntList A, IntList B) {
+        if (A == null) {
+            return B;
+        }
+        return new IntList(A.first, catenateRecur(A.rest, B));
+    }
 
+    public static void main(String[] args) {
+        IntList testCN = new IntList(3, null);
+        testCN = new IntList(2, testCN);
+        testCN = new IntList(1, testCN);
+        testCN = new IntList(1, testCN);
+        testCN = new IntList(4, testCN);
 
+        IntList testCN1 = new IntList(12, null);
+        testCN1.rest = new IntList(8, null);
+        testCN1.rest.rest = new IntList(7, null);
 
+//        IntList.dcatenate(testCN, testCN1);
+//        IntList.printList(testCN);
+
+//        IntList tmp = IntList.catenate(testCN, testCN1);
+//        IntList.printList(tmp);
+//        IntList.printList(testCN);
+
+        IntList tmp = IntList.catenateRecur(testCN, testCN1);
+        IntList.printList(tmp);
+        IntList.printList(testCN);
+    }
+
+    public static void printList(IntList p) {
+        while(p != null) {
+            System.out.print(p.first + " ");
+            p = p.rest;
+        }
+        System.out.println();
+    }
 
 
 
