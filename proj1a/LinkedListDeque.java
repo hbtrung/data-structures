@@ -1,7 +1,7 @@
 /** doubly linked list, circular sentinel node */
 
-public class LinkedListDeque<T> implements DequeInterface<T> {
-    protected class IntNode {
+public class LinkedListDeque<T> {
+    private class IntNode {
         public T item;
         public IntNode next;
         public IntNode prev;

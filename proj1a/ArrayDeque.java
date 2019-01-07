@@ -1,12 +1,12 @@
 /** circular array */
 
-public class ArrayDeque<T> implements DequeInterface<T> {
-    public T[] items;
+public class ArrayDeque<T> {
+    private T[] items;
     private int size;
     private int nextFirst;
     private int nextLast;
 
-    public ArrayDeque(){
+    public ArrayDeque() {
         items = (T[]) new Object[8];
         size = 0;
         nextFirst = 3;
@@ -57,8 +57,7 @@ public class ArrayDeque<T> implements DequeInterface<T> {
                 for (int i = start; i < nextLast; i++) {
                     printOneItem(i);
                 }
-            } else
-                {
+            } else {
                 for (int i = start; i < items.length; i++) {
                     printOneItem(i);
                 }
@@ -79,7 +78,7 @@ public class ArrayDeque<T> implements DequeInterface<T> {
         T result = items[nextFirst];
         items[nextFirst] = null;
         size--;
-        if ((double)size / items.length <= 0.25) {
+        if ((double) size / items.length <= 0.25) {
             if (items.length > 16) {
                 resize(items.length / 2);
             }
@@ -95,7 +94,7 @@ public class ArrayDeque<T> implements DequeInterface<T> {
         T result = items[nextLast];
         items[nextLast] = null;
         size--;
-        if ((double)size / items.length <= 0.25) {
+        if ((double) size / items.length <= 0.25) {
             if (items.length > 16) {
                 resize(items.length / 2);
             }
