@@ -1,5 +1,5 @@
 public class Planet {
-  public static double gravity = 6.67e-11;
+  private static double gravity = 6.67e-11;
 
   public double xxPos;
   public double yyPos;
