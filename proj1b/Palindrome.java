@@ -21,7 +21,8 @@ public class Palindrome {
         if (cnt == 0) {
             return true;
         }
-        return cc.equalChars(p.removeFirst(), p.removeLast()) && isPalindromeCCHelper(p, cnt - 1, cc);
+        return cc.equalChars(p.removeFirst(), p.removeLast()) &&
+                isPalindromeCCHelper(p, cnt - 1, cc);
     }
 
     public boolean isPalindrome(String word) {
