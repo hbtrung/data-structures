@@ -8,6 +8,7 @@ import java.io.IOException;
 
 public class Percolation {
     private WeightedQuickUnionUF connector;
+    private WeightedQuickUnionUF percolation;
     private int[][] grid;
     private int N;
     private int openNum;    // number of open sites
@@ -19,7 +20,8 @@ public class Percolation {
         }
         this.N = N;
         grid = new int[N][N];
-        connector = new WeightedQuickUnionUF(N*N + 2);     // last 2 index for top and bottom row
+        connector = new WeightedQuickUnionUF(N * N + 1);     // last index for top row
+        percolation = new WeightedQuickUnionUF(N * N + 2);    // top and bottom row
         openNum = 0;
     }
 
@@ -31,10 +33,11 @@ public class Percolation {
         if (!isOpen(row, col)) {
             grid[row][col] = 1;
             if (row == 0) {
-                connector.union(cIndex(row, col), N*N);
+                connector.union(cIndex(row, col), N * N);
+                percolation.union(cIndex(row, col), N * N);
             }
-            if (row == N - 1 && connector.connected(cIndex(row, col), N*N)) {
-                connector.union(N * N, N*N + 1);
+            if (row == N - 1) {
+                percolation.union(cIndex(row, col), N * N + 1);
             }
             connect(row, col);
             openNum++;
@@ -51,6 +54,7 @@ public class Percolation {
             }
             if (grid[r][c] == 1) {
                 connector.union(cIndex(row, col), cIndex(r, c));
+                percolation.union(cIndex(row, col), cIndex(r, c));
             }
         }
     }
@@ -83,7 +87,7 @@ public class Percolation {
 
     // does the system percolate?
     public boolean percolates() {
-        return connector.connected(N * N, N * N + 1);
+        return percolation.connected(N * N, N * N + 1);
     }
 
     // use for unit testing (not required)
