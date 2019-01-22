@@ -30,8 +30,12 @@ public class Percolation {
         }
         if (!isOpen(row, col)) {
             grid[row][col] = 1;
-            if (row == 0) connector.union(cIndex(row, col), N*N);
-            if (row == N - 1) connector.union(N * N, N*N + 1);
+            if (row == 0) {
+                connector.union(cIndex(row, col), N*N);
+            }
+            if (row == N - 1 && connector.connected(cIndex(row, col), N*N)) {
+                connector.union(N * N, N*N + 1);
+            }
             connect(row, col);
             openNum++;
         }
