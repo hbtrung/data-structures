@@ -4,14 +4,15 @@ import edu.princeton.cs.algs4.StdRandom;
 import edu.princeton.cs.algs4.StdStats;
 
 public class PercolationStats {
-    int N;
-    int T;
-    double x[];
+    private int N;
+    private int T;
+    private double[] x;
 
     // perform T independent experiments on an N-by-N grid
     public PercolationStats(int N, int T, PercolationFactory pf) {
-        if (N <= 0 || T <= 0)
-            throw new IllegalArgumentException("Invalid argument(s) to PercolationStats constructor");
+        if (N <= 0 || T <= 0) {
+            throw new IllegalArgumentException("Invalid argument(s) to constructor");
+        }
         this.N = N;
         this.T = T;
         x = new double[T];
