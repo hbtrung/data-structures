@@ -28,11 +28,13 @@ public class Percolation {
         if (row < 0 || row >= N || col < 0 || col >= N) {
             throw new IndexOutOfBoundsException("calls open() with invalid row or column");
         }
-        grid[row][col] = 1;
-        if (row == 0) connector.union(cIndex(row, col), N*N);
-        if (row == N - 1) connector.union(cIndex(row, col), N*N + 1);
-        connect(row, col);
-        openNum++;
+        if (!isOpen(row, col)) {
+            grid[row][col] = 1;
+            if (row == 0) connector.union(cIndex(row, col), N*N);
+            if (row == N - 1) connector.union(N * N, N*N + 1);
+            connect(row, col);
+            openNum++;
+        }
     }
 
     private void connect(int row, int col) {

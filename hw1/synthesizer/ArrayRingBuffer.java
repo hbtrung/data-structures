@@ -43,7 +43,9 @@ public class ArrayRingBuffer<T> extends AbstractBoundedQueue<T> {
         if (capacity() == 0) {
             throw new RuntimeException("Ring buffer underflow");
         }
-        if (isEmpty()) throw new RuntimeException("Cannot dequeue empty queue");
+        if (isEmpty()) {
+            throw new RuntimeException("Cannot dequeue empty queue");
+        }
         T item = rb[first];
         rb[first] = null;
         first = first == (capacity - 1) ? 0 : first + 1;
@@ -58,10 +60,12 @@ public class ArrayRingBuffer<T> extends AbstractBoundedQueue<T> {
         if (capacity() == 0) {
             throw new RuntimeException("No item to return");
         }
-        if (isEmpty()) throw new RuntimeException("Cannot peek empty queue");
+        if (isEmpty()) {
+            throw new RuntimeException("Cannot peek empty queue");
+        }
         return rb[first];
     }
-    
+
     public Iterator<T> iterator() {
         return new KeyIterator();
     }
@@ -76,7 +80,7 @@ public class ArrayRingBuffer<T> extends AbstractBoundedQueue<T> {
         }
 
         public boolean hasNext() {
-            return cnt != fillCount ;
+            return cnt != fillCount;
         }
 
         public T next() {
