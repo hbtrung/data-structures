@@ -20,8 +20,14 @@ public class Percolation {
         }
         this.N = N;
         grid = new int[N][N];
-        connector = new WeightedQuickUnionUF(N * N + 1);     // last index for top row
-        percolation = new WeightedQuickUnionUF(N * N + 2);    // top and bottom row
+        int size = N * N;
+        connector = new WeightedQuickUnionUF(size + 1);     // last index for top row
+        percolation = new WeightedQuickUnionUF(size + 2);    // top and bottom row
+        for (int i = 0; i < N; i++) {
+            connector.union(i, size);
+            percolation.union(i, size);
+            percolation.union(size - N + i, size + 1);
+        }
         openNum = 0;
     }
 
@@ -32,13 +38,13 @@ public class Percolation {
         }
         if (!isOpen(row, col)) {
             grid[row][col] = 1;
-            if (row == 0) {
-                connector.union(cIndex(row, col), N * N);
-                percolation.union(cIndex(row, col), N * N);
-            }
-            if (row == N - 1) {
-                percolation.union(cIndex(row, col), N * N + 1);
-            }
+//            if (row == 0) {
+//                connector.union(cIndex(row, col), N * N);
+//                percolation.union(cIndex(row, col), N * N);
+//            }
+//            if (row == N - 1) {
+//                percolation.union(cIndex(row, col), N * N + 1);
+//            }
             connect(row, col);
             openNum++;
         }
@@ -72,7 +78,7 @@ public class Percolation {
         if (row < 0 || row >= N || col < 0 || col >= N) {
             throw new IndexOutOfBoundsException("calls isFull() with invalid row or column");
         }
-        return connector.connected(cIndex(row, col), N*N);
+        return isOpen(row, col) && connector.connected(cIndex(row, col), N * N);
     }
 
     // return the index of the site in connector disjoint set
