@@ -135,6 +135,10 @@ public class TETile {
         return new TETile(t, c);
     }
 
+    public static TETile colorVariant(TETile t, Random r) {
+        return colorVariant(t, r.nextInt(255), r.nextInt(255), r.nextInt(255), r);
+    }
+
     private static int newColorValue(int v, int dv, Random r) {
         int rawNewValue = v + RandomUtils.uniform(r, -dv, dv + 1);
 

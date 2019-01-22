@@ -1,5 +1,4 @@
-// TODO: Make sure to make this class a part of the synthesizer package
-//package <package name>;
+package synthesizer;
 
 //Make sure this class is public
 public class GuitarString {
@@ -18,6 +17,11 @@ public class GuitarString {
         //       cast the result of this divsion operation into an int. For better
         //       accuracy, use the Math.round() function before casting.
         //       Your buffer should be initially filled with zeros.
+        int cap = (int)Math.round(SR/frequency);
+        buffer = new ArrayRingBuffer<>(cap);
+        for (int i = 0; i < cap; i++) {
+            buffer.enqueue(0.0);
+        }
     }
 
 
@@ -28,6 +32,14 @@ public class GuitarString {
         //       double r = Math.random() - 0.5;
         //
         //       Make sure that your random numbers are different from each other.
+        int fillCount = buffer.fillCount();
+        for (int i = 0; i < fillCount; i++) {
+            buffer.dequeue();
+        }
+        int cap = buffer.capacity();
+        for (int i = 0; i < cap; i++) {
+            buffer.enqueue(Math.random() - 0.5);
+        }
     }
 
     /* Advance the simulation one time step by performing one iteration of
@@ -37,11 +49,25 @@ public class GuitarString {
         // TODO: Dequeue the front sample and enqueue a new sample that is
         //       the average of the two multiplied by the DECAY factor.
         //       Do not call StdAudio.play().
+        double newSample = (buffer.dequeue() + buffer.peek()) * DECAY / 2 ;
+        buffer.enqueue(newSample);
     }
 
     /* Return the double at the front of the buffer. */
     public double sample() {
         // TODO: Return the correct thing.
-        return 0;
+        return buffer.peek();
     }
+
+//    public static void main(String[] args) {
+//        GuitarString guitarString = new GuitarString(4410);
+//        guitarString.buffer.enqueue(0.2);
+//        guitarString.buffer.enqueue(0.4);
+//        guitarString.buffer.enqueue(0.6);
+//        guitarString.tic();
+//        for (Double d : guitarString.buffer) {
+//            System.out.print(d + " ");
+//        }
+//        System.out.println();
+//    }
 }
