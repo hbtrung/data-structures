@@ -10,6 +10,7 @@ public class Board implements WorldState{
 
     private int[][] board;
     private int n;
+    private int estimate;
 
     public Board(int[][] tiles) {
         n = tiles.length;
@@ -19,6 +20,7 @@ public class Board implements WorldState{
                 board[i][j] = tiles[i][j];
             }
         }
+        estimate = manhattan();
     }
 
     public int tileAt(int i, int j){
@@ -93,14 +95,9 @@ public class Board implements WorldState{
         return wrong;
     }
 
-    // return the ought-to-be position of a tile
-//    private int[] indexes(int num) {
-//        return {(num - 1) / n, (num - 1) % n};
-//    }
-
     @Override
     public int estimatedDistanceToGoal() {
-        return manhattan();
+        return estimate;
     }
 
     @Override
@@ -110,6 +107,7 @@ public class Board implements WorldState{
         if (o == null || getClass() != o.getClass())
             return false;
         Board tmp = (Board) o;
+        if (size() != tmp.size()) return false;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 if (tileAt(i, j) != tmp.tileAt(i, j)){
@@ -117,7 +115,19 @@ public class Board implements WorldState{
                 }
             }
         }
-        return size() == tmp.size();
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                hash *= 16;
+                hash += tileAt(i, j);
+            }
+        }
+        return hash;
     }
 
     private boolean inBounds(int i, int j) {
@@ -141,10 +151,13 @@ public class Board implements WorldState{
         return s.toString();
     }
 
-    public static void main(String[] args) {
-        int[][] tiles = {{8, 1, 3}, {4, 0, 2}, {7, 6, 5}};
-        Board b = new Board(tiles);
-        System.out.println(b.hamming());
-        System.out.println(b.manhattan());
-    }
+//    public static void main(String[] args) {
+//        int[][] tiles = {{8, 1, 3}, {4, 0, 2}, {7, 6, 5}};
+//        Board b = new Board(tiles);
+//        System.out.println(b.hamming());
+//        System.out.println(b.manhattan());
+//        System.out.println(b.hashCode());
+//        System.out.println(b.hashCode());
+//        System.out.println(b.hashCode());
+//    }
 }

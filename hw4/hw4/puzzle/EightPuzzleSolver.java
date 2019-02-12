@@ -8,7 +8,8 @@ public class EightPuzzleSolver {
      * Test routine for your Solver class. Uncomment and run to test
      * your basic functionality.
     **********************************************************************/
-    /*public static void main(String[] args) {
+    public static void main(String[] args) {
+        long start = System.currentTimeMillis();
         In in = new In(args[0]);
         int N = in.readInt();
         int[][] tiles = new int[N][N];
@@ -20,8 +21,9 @@ public class EightPuzzleSolver {
         Board initial = new Board(tiles);
         Solver solver = new Solver(initial);
         StdOut.println("Minimum number of moves = " + solver.moves());
-        for (WorldState ws : solver.solution()) {
-            StdOut.println(ws);
-        }
-    }*/
+//        for (WorldState ws : solver.solution()) {
+//            StdOut.println(ws);
+//        }
+        System.out.println((System.currentTimeMillis() - start) / 1000.0);
+    }
 }
