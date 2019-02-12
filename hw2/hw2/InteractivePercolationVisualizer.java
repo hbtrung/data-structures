@@ -55,7 +55,7 @@ public class InteractivePercolationVisualizer {
 
                 // draw N-by-N percolation system
                 PercolationVisualizer.draw(perc, N);
-                System.out.println("open sites: " + perc.numberOfOpenSites());
+//                System.out.println("open sites: " + perc.numberOfOpenSites());
             }
             StdDraw.show(DELAY);
         }

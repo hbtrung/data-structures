@@ -12,7 +12,7 @@ public class MazeDepthFirstPaths extends MazeExplorer {
     private int s;
     private int t;
     private boolean targetFound = false;
-    private Maze maze;
+    private Maze maze;      // why create new maze?
 
 
     public MazeDepthFirstPaths(Maze m, int sourceX, int sourceY, int targetX, int targetY) {
@@ -42,7 +42,7 @@ public class MazeDepthFirstPaths extends MazeExplorer {
                 announce();
                 distTo[w] = distTo[v] + 1;
                 dfs(w);
-                if (targetFound) {
+                if (targetFound) {      // why check here?
                     return;
                 }
             }

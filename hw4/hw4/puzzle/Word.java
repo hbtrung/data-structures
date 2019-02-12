@@ -65,11 +65,16 @@ public class Word implements WorldState {
                          a.charAt(i - 1) == b.charAt(j - 1) ? nw : nw + 1);
                 nw = costs[j];
                 costs[j] = cj;
+//                System.out.print("nw: " + nw + "   " + j + ": " + cj + "   ");
             }
+//            System.out.println();
+//            for (int j = 0; j < costs.length; j++) {
+//                System.out.print(costs[j] + " ");
+//            }
+//            System.out.println();
         }
         return costs[b.length()];
     }
-
 
     @Override
     public Iterable<WorldState> neighbors() {
@@ -92,6 +97,7 @@ public class Word implements WorldState {
         return word;
     }
 
+    // !!!!!!!
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -114,5 +120,9 @@ public class Word implements WorldState {
         int result = word != null ? word.hashCode() : 0;
         result = 31 * result + (goal != null ? goal.hashCode() : 0);
         return result;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Word.editDistance("abbd", "abcd"));
     }
 }

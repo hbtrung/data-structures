@@ -1,4 +1,7 @@
 import org.junit.Test;
+
+import java.util.NoSuchElementException;
+
 import static org.junit.Assert.*;
 
 /**
@@ -27,24 +30,21 @@ public class ArrayHeap<T> implements ExtrinsicPQ<T> {
      * Returns the index of the node to the left of the node at i.
      */
     private static int leftIndex(int i) {
-        /* TODO: Your code here! */
-        return 0;
+        return i * 2;
     }
 
     /**
      * Returns the index of the node to the right of the node at i.
      */
     private static int rightIndex(int i) {
-        /* TODO: Your code here! */
-        return 0;
+        return i * 2 + 1;
     }
 
     /**
      * Returns the index of the node that is the parent of the node at i.
      */
     private static int parentIndex(int i) {
-        /* TODO: Your code here! */
-        return 0;
+        return i / 2;
     }
 
     /**
@@ -99,6 +99,9 @@ public class ArrayHeap<T> implements ExtrinsicPQ<T> {
         }
     }
 
+    private boolean greater(int i, int j) {
+        return contents[i].myPriority > contents[j].myPriority;
+    }
 
     /**
      * Bubbles up the node currently at the given index.
@@ -107,8 +110,10 @@ public class ArrayHeap<T> implements ExtrinsicPQ<T> {
         // Throws an exception if index is invalid. DON'T CHANGE THIS LINE.
         validateSinkSwimArg(index);
 
-        /** TODO: Your code here. */
-        return;
+        while (index > 1 && greater(index / 2, index)) {
+            swap(index, index / 2);
+            index /= 2;
+        }
     }
 
     /**
@@ -118,8 +123,13 @@ public class ArrayHeap<T> implements ExtrinsicPQ<T> {
         // Throws an exception if index is invalid. DON'T CHANGE THIS LINE.
         validateSinkSwimArg(index);
 
-        /** TODO: Your code here. */
-        return;
+        while (index * 2 <= size) {
+            int i = index * 2;
+            if (i < size && greater(i, i + 1)) i++;
+            if (!greater(index, i)) break;
+            swap(index, i);
+            index = i;
+        }
     }
 
     /**
@@ -133,7 +143,8 @@ public class ArrayHeap<T> implements ExtrinsicPQ<T> {
             resize(contents.length * 2);
         }
 
-        /* TODO: Your code here! */
+        contents[++size] = new Node(item, priority);
+        swim(size);
     }
 
     /**
@@ -142,8 +153,7 @@ public class ArrayHeap<T> implements ExtrinsicPQ<T> {
      */
     @Override
     public T peek() {
-        /* TODO: Your code here! */
-        return null;
+        return contents[1].item();
     }
 
     /**
@@ -157,8 +167,15 @@ public class ArrayHeap<T> implements ExtrinsicPQ<T> {
      */
     @Override
     public T removeMin() {
-        /* TODO: Your code here! */
-        return null;
+        if (size() == 0) throw new NoSuchElementException("Priority queue is empty");
+        T x = contents[1].item();
+        swap(1, size); // size-- here doesn't work due to different swap implementation
+        size--;
+        sink(1);
+        contents[size + 1] = null;
+        if (contents.length > 1 && ((double) size / (contents.length - 1) <= 0.25))
+            resize(contents.length / 2);
+        return x;
     }
 
     /**
@@ -180,8 +197,18 @@ public class ArrayHeap<T> implements ExtrinsicPQ<T> {
      */
     @Override
     public void changePriority(T item, double priority) {
-        /* TODO: Your code here! */
-        return;
+        if (item == null) throw new IllegalArgumentException("calls changePriority with null item");
+        int index = -1;
+        for (int i = 1; i <= size; i++) {
+            if (contents[i].item().equals(item)) {
+                index = i;
+                break;
+            }
+        }
+        if (index == -1) throw new IllegalArgumentException("no item found");
+        contents[index].myPriority = priority;
+        swim(index);
+        sink(index);
     }
 
     /**
@@ -256,7 +283,7 @@ public class ArrayHeap<T> implements ExtrinsicPQ<T> {
     /** Helper function to resize the backing array when necessary. */
     private void resize(int capacity) {
         Node[] temp = new ArrayHeap.Node[capacity];
-        for (int i = 1; i < this.contents.length; i++) {
+        for (int i = 1; i <= size; i++) {
             temp[i] = this.contents[i];
         }
         this.contents = temp;
