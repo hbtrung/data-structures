@@ -77,6 +77,7 @@ public class CSCourseDBHandler extends DefaultHandler {
             this.db.addPrereq(from, to);
             from = null;
             to = null;
+            activeState = "";
         }
     }
 }

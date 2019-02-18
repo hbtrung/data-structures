@@ -6,7 +6,7 @@ import java.io.IOException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * Graph for storing all of the intersection (vertex) and road (edge) information.
@@ -20,6 +20,11 @@ import java.util.ArrayList;
 public class GraphDB {
     /** Your instance variables for storing the graph. You should consider
      * creating helper classes, e.g. Node, Edge, etc. */
+    private Map<Long, Node> nodes;
+    private Set<Way> ways;
+    private long W;
+    private long V;
+    private long E;
 
     /**
      * Example constructor shows how to create and start an XML parser.
@@ -27,6 +32,8 @@ public class GraphDB {
      * @param dbPath Path to the XML file to be parsed.
      */
     public GraphDB(String dbPath) {
+        nodes = new HashMap<Long, Node>();
+        ways = new HashSet<>();
         try {
             File inputFile = new File(dbPath);
             FileInputStream inputStream = new FileInputStream(inputFile);
@@ -57,7 +64,16 @@ public class GraphDB {
      *  we can reasonably assume this since typically roads are connected.
      */
     private void clean() {
-        // TODO: Your code here.
+        List<Long> removeIds = new ArrayList<Long>();
+        for (Long id : nodes.keySet()) {
+            if (!nodes.get(id).isConnected()) {
+                removeIds.add(id);
+            }
+        }
+        for (Long id : removeIds) {
+            nodes.remove(id);
+            V--;
+        }
     }
 
     /**
@@ -65,8 +81,65 @@ public class GraphDB {
      * @return An iterable of id's of all vertices in the graph.
      */
     Iterable<Long> vertices() {
-        //YOUR CODE HERE, this currently returns only an empty list.
-        return new ArrayList<Long>();
+        return nodes.keySet();
+    }
+
+    Node node(long id) {
+        return nodes.get(id);
+    }
+
+    void addWay(Way way) {
+        ways.add(way);
+        W++;
+    }
+
+    void insert(long id, double lat, double lon) {
+        if (id < 0) throw new IllegalArgumentException("id must not be negative");
+        if (!nodes.containsKey(id)) {
+            nodes.put(id, new Node(lat, lon));
+            V++;
+        }
+    }
+
+    void remove(long id) {
+        validateNode(id);
+        int numVertices = nodes.get(id).numConnections();
+        nodes.remove(id);
+        V--;
+        E -= numVertices;
+    }
+
+    void addEdge(long v, long w, Way way) {
+        double weight = distance(v, w);
+        validateNode(v);
+        validateNode(w);
+        Edge edge = new Edge(v, w, weight, way);
+        nodes.get(v).addEdge(edge);
+        nodes.get(w).addEdge(edge);
+        E++;
+    }
+
+    void addEdge(List<Long> nodeIds, Way way) {
+        int n = nodeIds.size();
+        for (int i = 0; i < n - 1; i++) {
+            addEdge(nodeIds.get(i), nodeIds.get(i + 1), way);
+        }
+    }
+
+    boolean isEmpty() {
+        return V == 0;
+    }
+
+    long V() {
+        return V;
+    }
+
+    long E() {
+        return E;
+    }
+
+    long W() {
+        return W;
     }
 
     /**
@@ -75,7 +148,16 @@ public class GraphDB {
      * @return An iterable of the ids of the neighbors of v.
      */
     Iterable<Long> adjacent(long v) {
-        return null;
+        List<Long> adj = new ArrayList<Long>();
+        for (Edge edge : nodes.get(v).adj()) {
+            adj.add(edge.other(v));
+        }
+        return adj;
+    }
+
+    void validateNode(long id) {
+        if (id < 0) throw new IllegalArgumentException("node id must not be negative");
+        if (!nodes.containsKey(id)) throw new NoSuchElementException("node does not exist");
     }
 
     /**
@@ -136,7 +218,16 @@ public class GraphDB {
      * @return The id of the node in the graph closest to the target.
      */
     long closest(double lon, double lat) {
-        return 0;
+        long result = 0;
+        double minDistance = Double.POSITIVE_INFINITY;
+        for (long v : nodes.keySet()) {
+            double dist = distance(lon, lat, lon(v), lat(v));
+            if (minDistance > dist) {
+                minDistance = dist;
+                result = v;
+            }
+        }
+        return result;
     }
 
     /**
@@ -145,7 +236,7 @@ public class GraphDB {
      * @return The longitude of the vertex.
      */
     double lon(long v) {
-        return 0;
+        return nodes.get(v).lon();
     }
 
     /**
@@ -154,6 +245,164 @@ public class GraphDB {
      * @return The latitude of the vertex.
      */
     double lat(long v) {
-        return 0;
+        return nodes.get(v).lat();
     }
+
+    static class Node {
+//        long id;
+        private double lat;
+        private double lon;
+        private String name;
+        private List<Edge> adj;
+
+        Node(double lat, double lon) {
+            this.lat = lat;
+            this.lon = lon;
+            adj = new ArrayList<Edge>();
+        }
+
+        double lat() {
+            return lat;
+        }
+
+        double lon() {
+            return lon;
+        }
+
+        String name() {
+            return name;
+        }
+
+        void setName(String name) {
+            this.name = name;
+        }
+
+        int numConnections() {
+            return adj.size();
+        }
+
+        boolean isConnected() {
+            return numConnections() != 0;
+        }
+
+        void addEdge(Edge w) {
+            adj.add(w);
+        }
+
+        Iterable<Edge> adj() {
+            return adj;
+        }
+    }
+
+    static class Edge implements Comparable<Edge> {
+        private long v;
+        private long w;
+        private double weight;
+        private Way way;
+
+        Edge(long v, long w, double weight, Way way) {
+            if (v < 0) throw new IllegalArgumentException("vertex index must be a nonnegative integer");
+            if (w < 0) throw new IllegalArgumentException("vertex index must be a nonnegative integer");
+            if (Double.isNaN(weight)) throw new IllegalArgumentException("Weight is NaN");
+            this.v = v;
+            this.w = w;
+            this.weight = weight;
+            this.way = way;
+        }
+
+        double weight() {
+            return weight;
+        }
+
+        long either() {
+            return v;
+        }
+
+        long other(long vertex) {
+            if      (vertex == v) return w;
+            else if (vertex == w) return v;
+            else throw new IllegalArgumentException("Illegal endpoint");
+        }
+
+        Way way() {
+            return way;
+        }
+
+        @Override
+        public int compareTo(Edge that) {
+            return Double.compare(this.weight, that.weight);
+        }
+    }
+
+    static class Way {
+        private long id;
+        private String name;
+        private double maxSpeed;
+        private String unit;
+        private String hwType;
+        private boolean valid;
+
+        Way(long id) {
+            this.id = id;
+            valid = false;
+        }
+
+        long id() {
+            return id;
+        }
+
+        String name() {
+            return name;
+        }
+
+        void setName(String name) {
+            this.name = name;
+        }
+
+        double maxSpeed() {
+            return maxSpeed;
+        }
+
+        void setMaxSpeed(double maxSpeed) {
+            this.maxSpeed = maxSpeed;
+        }
+
+        String hwType() {
+            return hwType;
+        }
+
+        void setHwType(String hwType) {
+            this.hwType = hwType;
+        }
+
+        boolean isValid() {
+            return valid;
+        }
+
+        void setValid(boolean valid) {
+            this.valid = valid;
+        }
+
+        String unit() {
+            return unit;
+        }
+
+        void setUnit(String unit) {
+            this.unit = unit;
+        }
+    }
+
+//    public static void main(String[] args) {
+//        String DBPathTiny = "../library-sp18/data/tiny-clean.osm.xml";
+//        GraphDB g = new GraphDB(DBPathTiny);
+//        for (Long x : g.vertices()) {
+//            System.out.print(x + " ");
+//        }
+//        System.out.println();
+//
+//        GraphDB.Node node1 = g.node(22);
+//        node1.setName("con cac");
+//        GraphDB.Node node = g.node(22);
+//        System.out.println(node.lat() + " " + node.lon() + " " + node.name());
+//    }
 }

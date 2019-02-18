@@ -11,13 +11,13 @@ public class Solver {
     private int num;
 
     public Solver(WorldState initial) {
-        SearchNode<WorldState> init = new SearchNode<WorldState>(initial, 0, null);
-        MinPQ<SearchNode<WorldState>> pq = new MinPQ<SearchNode<WorldState>>();
+        SearchNode init = new SearchNode(initial, 0, null);
+        MinPQ<SearchNode> pq = new MinPQ<SearchNode>();
         pq.insert(init);
         bestfs(pq);
     }
 
-    private void bestfs(MinPQ<SearchNode<WorldState>> pq) {
+    private void bestfs(MinPQ<SearchNode> pq) {
 //        Set<WorldState> marked = new HashSet<>();
         while (!pq.isEmpty()) {
             SearchNode x = pq.delMin();
@@ -37,7 +37,7 @@ public class Solver {
             for (WorldState w : x.worldState().neighbors()) {
                 if (x.prev() != null && w.equals(x.prev().worldState())) continue;
 //                if (marked.contains(w)) continue;
-                pq.insert(new SearchNode<WorldState>(w, x.moves() + 1, x));
+                pq.insert(new SearchNode(w, x.moves() + 1, x));
                 num++;
             }
         }
@@ -49,9 +49,5 @@ public class Solver {
 
     public Iterable<WorldState> solution() {
         return solution;
-    }
-
-    public int num(){
-        return num;
     }
 }

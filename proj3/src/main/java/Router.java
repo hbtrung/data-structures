@@ -1,5 +1,4 @@
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,6 +11,10 @@ import java.util.regex.Pattern;
  * down to the priority you use to order your vertices.
  */
 public class Router {
+    private static Map<Long, Double> distTo;
+    private static Map<Long, GraphDB.Edge> edgeTo;
+    private static HMMinPQ<Double> pq;
+
     /**
      * Return a List of longs representing the shortest path from the node
      * closest to a start location and the node closest to the destination
@@ -25,7 +28,48 @@ public class Router {
      */
     public static List<Long> shortestPath(GraphDB g, double stlon, double stlat,
                                           double destlon, double destlat) {
-        return null; // FIXME
+        Set<Long> marked = new HashSet<Long>();
+        long stId = g.closest(stlon, stlat);
+        long destId = g.closest(destlon, destlat);
+
+        distTo = new HashMap<Long, Double>();
+        edgeTo = new HashMap<Long, GraphDB.Edge>();
+        pq = new HMMinPQ<Double>();
+
+        for (long id : g.vertices()) {
+            distTo.put(id, Double.POSITIVE_INFINITY);
+        }
+        distTo.put(stId, 0.0);
+        edgeTo.put(stId, null);
+        pq.insert(stId, distTo.get(stId) + g.distance(stId, destId));
+
+        while (!pq.isEmpty()) {
+            long v = pq.delMin();
+            marked.add(v);
+
+            if (v == destId) {
+                Deque<Long> path = new ArrayDeque<Long>();
+                for (long x = v; distTo.get(x) != 0; x = edgeTo.get(x).other(x)) {
+                    path.addFirst(x);
+                }
+                path.addFirst(stId);
+                return new ArrayList<Long>(path);
+            }
+
+            for (GraphDB.Edge e : g.node(v).adj()) {
+                long w = e.other(v);
+                if (!marked.contains(w)) {
+                    if (distTo.get(v) + e.weight() < distTo.get(w)) {
+                        distTo.put(w, distTo.get(v) + e.weight());
+                        edgeTo.put(w, e);
+                        if (!pq.contains(w)) pq.insert(w, distTo.get(w) + g.distance(w, destId));
+                        else pq.decreaseKey(w, distTo.get(w) + g.distance(w, destId));
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -33,11 +77,77 @@ public class Router {
      * @param g The graph to use.
      * @param route The route to translate into directions. Each element
      *              corresponds to a node from the graph in the route.
-     * @return A list of NavigatiionDirection objects corresponding to the input
+     * @return A list of NavigationDirection objects corresponding to the input
      * route.
      */
+    // can use computed distTo and edgeTo of shortest path
     public static List<NavigationDirection> routeDirections(GraphDB g, List<Long> route) {
-        return null; // FIXME
+        List<NavigationDirection> rd = new ArrayList<NavigationDirection>();
+        NavigationDirection nd = new NavigationDirection();
+        double distance = 0;
+        String curWayName = "";
+
+        nd.direction = NavigationDirection.START;
+        long s = route.get(0);
+        for (GraphDB.Edge e : g.node(s).adj()) {
+            if (e.other(s) == route.get(1)) {
+                nd.way = e.way().name() != null ? e.way().name() : NavigationDirection.UNKNOWN_ROAD;
+                curWayName = nd.way;
+                distance += e.weight();
+                break;
+            }
+        }
+//        System.out.println(curWayName);
+
+        for (int i = 1; i < route.size() - 1; i++) {
+            long v = route.get(i);
+            for (GraphDB.Edge e : g.node(v).adj()) {
+                if (e.other(v) == route.get(i + 1)) {
+                    String name = e.way().name() != null ? e.way().name() : NavigationDirection.UNKNOWN_ROAD;
+                    if (!name.equals(curWayName)) {
+//                        System.out.println(curWayName + " " + name);
+                        nd.distance = distance;
+                        distance = 0;
+
+                        rd.add(nd);
+
+                        nd = new NavigationDirection();
+                        nd.way = name;
+
+                        double bearing = g.bearing(route.get(i + 1), v) - g.bearing(v, route.get(i - 1));
+                        if (bearing <= -180) bearing += 360;
+                        if (bearing >= 180) bearing -= 360;
+                        if (-15 <= bearing && bearing <= 15) {
+                            nd.direction = NavigationDirection.STRAIGHT;
+                        } else if (-30 <= bearing && bearing < -15) {
+                            nd.direction = NavigationDirection.SLIGHT_LEFT;
+                        } else if (15 < bearing && bearing <= 30) {
+                            nd.direction = NavigationDirection.SLIGHT_RIGHT;
+                        } else if (30 < bearing && bearing <= 100) {
+                            nd.direction = NavigationDirection.RIGHT;
+                        } else if (-100 <= bearing && bearing < -30) {
+                            nd.direction = NavigationDirection.LEFT;
+                        } else if (bearing < -100) {
+                            nd.direction = NavigationDirection.SHARP_LEFT;
+                        } else if (bearing > 100) {
+                            nd.direction = NavigationDirection.SHARP_RIGHT;
+                        }
+
+                        curWayName = nd.way;
+                    }
+
+                    distance += e.weight();
+                    break;
+                }
+            }
+        }
+
+        nd.distance = distance;
+        rd.add(nd);
+//        for (NavigationDirection x : rd) {
+//            System.out.println(x);
+//        }
+        return rd;
     }
 
 
@@ -158,6 +268,23 @@ public class Router {
         @Override
         public int hashCode() {
             return Objects.hash(direction, way, distance);
+        }
+    }
+
+    public static void main(String[] args) {
+//        Map<Long, Double> m = new HashMap<>();
+//        m.put((long) 11, 1.0);
+//        m.put((long) 12, 2.0);
+//        m.put(11L, 4.5);
+//        for (long k : m.keySet()) {
+//            System.out.println(k + " " + m.get(k));
+//        }
+        GraphDB g = new GraphDB("../library-sp18/data/tiny-clean.osm.xml");
+        List<Long> route = new ArrayList<>();
+        route.add(66L); route.add(63L); route.add(41L);
+        List<NavigationDirection> rd = Router.routeDirections(g, route);
+        for (NavigationDirection nd : rd) {
+            System.out.println(nd);
         }
     }
 }

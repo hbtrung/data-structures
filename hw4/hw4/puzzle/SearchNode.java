@@ -1,12 +1,12 @@
 package hw4.puzzle;
 
-public class SearchNode<Key extends WorldState> implements Comparable<SearchNode> {
-    private Key ws;
+public class SearchNode implements Comparable<SearchNode> {
+    private WorldState ws;
     private int moves;
     private int estimatedMoves;
     private SearchNode prev;
 
-    public SearchNode(Key w, int m, SearchNode p) {
+    public SearchNode(WorldState w, int m, SearchNode p) {
         ws = w;
         moves = m;
         prev = p;
@@ -17,7 +17,7 @@ public class SearchNode<Key extends WorldState> implements Comparable<SearchNode
         return Integer.compare(this.moves + this.estimatedMoves, other.moves + other.estimatedMoves);
     }
 
-    public Key worldState(){
+    public WorldState worldState(){
         return ws;
     }
 
